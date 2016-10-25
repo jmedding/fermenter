@@ -1,0 +1,2 @@
+defmodule Sensor do
+end
