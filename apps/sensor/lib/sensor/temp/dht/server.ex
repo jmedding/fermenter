@@ -29,6 +29,7 @@ will look into the Sensor app's config file for the values
 
   @spec start_link(Integer, Integer, :atom) :: {atom, pid}
   def start_link(11, gpio, name) when is_atom(name) do
+    IO.puts "starting " <>  to_string(name)
     GenServer.start_link(__MODULE__, [11, gpio], name: name)
   end
   def start_link(22, gpio, name) when is_atom(name)  do
@@ -44,6 +45,7 @@ will look into the Sensor app's config file for the values
   """
   @spec start_link(Integer, Integer) :: {atom, pid}
   def start_link(11, gpio) do
+    IO.puts "starting without name"
     GenServer.start_link(__MODULE__, [11, gpio])
   end
   def start_link(22, gpio) do
