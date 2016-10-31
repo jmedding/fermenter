@@ -4,15 +4,18 @@ Get temperature values using the DHT family of sensors
 
 This is implemented with the Adafruit_DHT library and will work for Rpi and Rpi2
 
-It can be initialize with two parameters, {DhtType, pin} or none, in which case it 
-will look into the Sensor app's config file for the values
+It can be initialize with three parameters, (DhtType, pin, name) where name is an atom
+
+The sensor will be pooled at 5 second intervals. Calling the read functoin will
+return the last reading, without waiting for a new read. This is because the 
+reading process is somewhat slow, especially if the sensor returns an error, in which
+case, it will pause and then try again.
 """
 
-  # Need to set up a GenServer, supivors and a recurring task
-  # The sensor should be polled at regular intervals and update the state
-  # a call to get 'sense' should just return the current value
 
   use GenServer
+
+   @device Application.get_env(:sensor, :sensor_temp_dht)
 
   defmodule Reading do
     defstruct unit: "°C", value: -99.0, status: :init
@@ -64,10 +67,16 @@ will look into the Sensor app's config file for the values
     GenServer.call(name, {:set_temp, temp / 1})
   end
 
+  def set(name, %Reading{} = reading)  do
+    # convert temp to float with /1
+    GenServer.call(name, {:set, reading})
+  end
+
 
   # Server callbacks
   def init([type, gpio]) do
     reading = update(type, gpio)
+    spawn_link(__MODULE__, :poll_temp, [self, type, gpio])
     {:ok, {type, gpio, reading}}
   end
 
@@ -80,13 +89,17 @@ will look into the Sensor app's config file for the values
     {:reply, new_reading, {type, gpio, new_reading}}
   end
 
+  def handle_call({:set, new_reading}, _from, state = {type, gpio, reading}) do
+    {:reply, new_reading, {type, gpio, new_reading}}
+  end
+
   defp update(_type, _gpio, tries \\ 0)
   defp update(_,_, tries) when tries > 4  do
     %Reading{status: :error}
   end
 
   defp update(type, gpio, tries) do
-    result = Sensor.Temp.Dht.Device.read(type, gpio)
+    result = @device.read(type, gpio)
     case result do
       {:ok, %{temp: temp}} ->
         %Reading{unit: "°C", value: temp, status: :ok}
@@ -96,6 +109,12 @@ will look into the Sensor app's config file for the values
         :timer.sleep 3000
         update(type, gpio, tries + 1)
     end
+  end
+
+  def poll_temp(client, type, gpio) do
+    __MODULE__.set(client, update(type, gpio))
+    :timer.sleep 5000
+    poll_temp(client, type, gpio)
   end
 
 end

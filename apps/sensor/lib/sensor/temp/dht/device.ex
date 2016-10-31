@@ -12,7 +12,7 @@ the result into an elixir value
   ## Examples
 
       iex> TempSense.read
-      {:temp, %{temp: 20.0, humidity: 34.0}}
+      {:ok, %{temp: 20.0, humidity: 34.0}}
 
   """
   def read(type, gpio) do
@@ -36,6 +36,7 @@ the result into an elixir value
 
     #IO.inspect(Mix.env())
 
+    # Should be able to remove this case statement as we use config.ex to inject test_device for non-prod
     result = case Mix.env do
       :test -> result = {"Temp=20.0*C  Humidity=34.0%\n", 0}
       :prod -> result = System.cmd("python", ["DHT.py", to_string(type), to_string(pin)])

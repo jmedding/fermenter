@@ -40,7 +40,21 @@ defmodule SensorTest do
     inspect Supervisor.count_children(sup)
     assert %Server.Reading{ unit: _unit, value: value, status: _status} = Server.read(name)
     assert value == 20.0 #default temp value
+  end
 
-    
+  test "Can start more than one sensor", %{type: type, gpio: gpio, sensor_mod: sensor_mod} do
+    {name1, name2} = {:c, :d}
+    #assert {:ok, _sup} = Sensor.Supervisor.start_link
+    assert {:ok, _pid} = Sensor.Supervisor.start_sensor(sensor_mod, [type, gpio, name1])
+    assert {:ok, _pid} = Sensor.Supervisor.start_sensor(sensor_mod, [type, gpio, name2])
+    inspect Supervisor.count_children(SensorSupervisor)
+    inspect Supervisor.count_children(SensorSupervisor)
+    Server.set_temp(name1, 22)
+    assert %Server.Reading{ unit: _unit, value: value1, status: _status} = Server.read(name1)
+    assert %Server.Reading{ unit: _unit, value: value2, status: _status} = Server.read(name2)
+    assert value1 == 22.0
+    assert value2 == 20.0
+
+
   end
 end
