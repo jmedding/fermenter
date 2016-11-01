@@ -10,8 +10,10 @@ defmodule Sensor do
     Supervisor.start_link(children, opts)
   end
 
-  def start_sensor(module, params) do
-    Supervisor.start_child(@name, Supervisor.Spec.worker(module, params))
-    IO.puts inspect Supervisor.count_children(@name)  
+  @spec start_sensor(module, integer, integer, atom) :: {atom, pid}
+  def start_sensor(module, dht_type, gpio, name) do
+    count = Supervisor.count_children(@name)
+    id = to_string(module) <> "_" <> to_string(count.workers)
+    Supervisor.start_child(@name, Supervisor.Spec.worker(module, [dht_type, gpio, name], id: id))
   end 
 end
