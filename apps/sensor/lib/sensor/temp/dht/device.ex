@@ -39,7 +39,7 @@ the result into an elixir value
     # Should be able to remove this case statement as we use config.ex to inject test_device for non-prod
     result = case Mix.env do
       :test -> result = {"Temp=20.0*C  Humidity=34.0%\n", 0}
-      :prod -> result = System.cmd("python", ["DHT.py", to_string(type), to_string(pin)])
+      :prod -> result = System.cmd("python", ["bin/DHT.py", to_string(type), to_string(pin)])
       _     -> result = {"Temp=22.2*C  Humidity=33.3%\n", 0}
     end
     
