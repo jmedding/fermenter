@@ -7,5 +7,5 @@ defprotocol TempSensor do
   Returns a valid temperature value {:ok, {"°C", 22.3}} or an 
   error message {:error, :invalid, "The sensor is getting weird results, don't trust"}
   """
-  def sense(temp_sensor)
+  def sense(temp_sensor_name_or_pid)
 end

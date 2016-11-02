@@ -54,7 +54,15 @@ defmodule SensorTest do
     assert %Server.Reading{ unit: _unit, value: value2, status: _status} = Server.read(name2)
     assert value1 == 22.0
     assert value2 == 20.0
-
-
   end
+
+# Fails, as we didn't implement TempSensor.sense for type atom - wrong design..
+  #test "Implements TempSensor prototcol", %{type: type, gpio: gpio, sensor_mod: sensor_mod} do
+  #  name = :e
+  #  #assert {:ok, _sup} = Sensor.Supervisor.start_link
+  #  assert {:ok, _pid} = Sensor.start_sensor(sensor_mod, type, gpio, name)
+  #  assert {:ok, result} = TempSensor.sense(name)
+  #  assert %Server.Reading{ unit: _unit, value: value, status: _status} = result
+  #  assert value == 20.0
+  #end
 end
