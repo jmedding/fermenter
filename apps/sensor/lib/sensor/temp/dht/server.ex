@@ -33,9 +33,12 @@ case, it will pause and then try again.
   @spec start_link(Integer, Integer, :atom) :: {atom, pid}
   def start_link(type, gpio, name) when is_atom(name) and type in [11, 22] do
     IO.puts "starting " <>  to_string(name)
-    {:ok, pid} = GenServer.start_link(__MODULE__, [type, gpio, name], name: name)
-    struct = read(name)
-    {:ok, pid, struct}
+    result = GenServer.start_link(__MODULE__, [type, gpio, name], name: name) 
+    case result do
+      {:ok, pid} ->  {:ok, pid, read(name)}
+      _         ->  result
+
+    end
   end
 
   def start_link(type, gpio, name) do
@@ -75,13 +78,14 @@ case, it will pause and then try again.
     {:reply, struct, state}
   end
 
-  def handle_call({:set_temp, temp}, _from, state = {type, gpio, reading}) do
-    new_reading = %{reading | value: temp}
-    {:reply, new_reading, {type, gpio, new_reading}}
+  def handle_call({:set_temp, temp}, _from, state = {type, gpio, temp_struct}) do
+    new_struct = %Sensor.Temp{temp_struct | value: temp}
+    {:reply, new_struct, {type, gpio, new_struct}}
   end
 
-  def handle_call({:set, new_reading}, _from, state = {type, gpio, reading}) do
-    {:reply, new_reading, {type, gpio, new_reading}}
+  def handle_call({:set, reading}, _from, state = {type, gpio, struct}) do
+    new_struct = %Sensor.Temp{struct | value: reading.value, status: reading.status}
+    {:reply, new_struct, {type, gpio, new_struct}}
   end
 
   defp update(_type, _gpio, tries \\ 0)

@@ -16,7 +16,7 @@ defmodule Sensor.Temp.Dht.ServerTest do
 
   test "can get the temperature", %{type: type, gpio: gpio, name: name} do
     assert {:ok, _PID, _struct} = Server.start_link(type, gpio, name)
-    assert %Reading{ unit: _unit, value: value, status: _status} = Server.read(:temp1)
+    assert %Sensor.Temp{ unit: _unit, value: value, status: _status} = Server.read(:temp1)
     assert value == 20.0
   end
 
@@ -32,25 +32,23 @@ defmodule Sensor.Temp.Dht.ServerTest do
 
   test "can set the dht values", %{type: type, gpio: gpio, name: name} do
     assert {:ok, _pid, struct} = Server.start_link(type, gpio, name)
-    assert %Reading{ unit: _unit, value: value, status: _status}  = Server.set_temp(name, 22)
+    assert %Sensor.Temp{ module: _mod, name: _name, unit: _unit, value: value, status: _status}  = Server.set_temp(name, 22)
     assert value == 22.0
-    assert %Reading{ unit: _unit, value: value, status: _status} = Server.read(:temp1)
+    assert %Sensor.Temp{ module: _mod, name: _name, unit: _unit, value: value, status: _status} = Server.read(:temp1)
     assert value == 22.0
   end
 
   test "can monitor two sensors", %{type: type} do
-    assert {:ok, _pid} = Server.start_link(type, 4, :t4)
-    assert {:ok, _pid} = Server.start_link(type, 5, :t5)
-    assert %Reading{ unit: _unit, value: val_a, status: _status} = Server.set_temp(:t4, 22)
+    assert {:ok, _pid, _struct} = Server.start_link(type, 4, :t4)
+    assert {:ok, _pid, _struct} = Server.start_link(type, 5, :t5)
+    assert %Sensor.Temp{ value: val_a} = Server.set_temp(:t4, 22)
     assert val_a == 22.0
-    assert %Reading{ unit: _unit, value: val_b, status: _status} = Server.set_temp(:t5, 24)
+    assert %Sensor.Temp{ value: val_b} = Server.set_temp(:t5, 24)
     assert val_b == 24.0
-    assert %Reading{ unit: _unit, value: val_a, status: _status} = Server.read(:t4)
+    assert %Sensor.Temp{ value: val_a} = Server.read(:t4)
     assert val_a == 22.0
-    assert %Reading{ unit: _unit, value: val_b, status: _status} = Server.read(:t5)
+    assert %Sensor.Temp{ value: val_b} = Server.read(:t5)
     assert val_b == 24.0
-  
-
   end
 
 

@@ -14,7 +14,7 @@ defmodule TempTest do
   test "Can start a DHT temp sensor", %{type: type, gpio: gpio, sensor_mod: sensor_mod} do
     sensor_params = [type, gpio]
     name = :temp_a
-    assert {:ok, pid, %Temp{} = struct} = Temp.start(sensor_mod, sensor_params, name)
+    assert {:ok, _pid, %Sensor.Temp{module: sensor_mod} = struct} = Temp.start(sensor_mod, sensor_params, name)
 
     #assert {:ok, _sup} = Sensor.Supervisor.start_link
     inspect Supervisor.count_children(SensorSupervisor)
