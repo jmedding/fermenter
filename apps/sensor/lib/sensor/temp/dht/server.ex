@@ -31,32 +31,17 @@ case, it will pause and then try again.
   """
 
   @spec start_link(Integer, Integer, :atom) :: {atom, pid}
-  def start_link(11, gpio, name) when is_atom(name) do
+  def start_link(type, gpio, name) when is_atom(name) and type in [11, 22] do
     IO.puts "starting " <>  to_string(name)
-    GenServer.start_link(__MODULE__, [11, gpio], name: name)
+    {:ok, pid} = GenServer.start_link(__MODULE__, [type, gpio, name], name: name)
+    struct = read(name)
+    {:ok, pid, struct}
   end
-  def start_link(22, gpio, name) when is_atom(name)  do
-    GenServer.start_link(__MODULE__, [22, gpio], name: name)
-  end
+
   def start_link(type, gpio, name) do
     {:error, "the type must be either 11 or 22"}
   end
 
-  @doc """
-  start_link/2 should only be called by the SensorSupervisor, which
-  manages assigning the process name on its own.
-  """
-  @spec start_link(Integer, Integer) :: {atom, pid}
-  def start_link(11, gpio) do
-    IO.puts "starting without name"
-    GenServer.start_link(__MODULE__, [11, gpio])
-  end
-  def start_link(22, gpio) do
-    GenServer.start_link(__MODULE__, [22, gpio])
-  end
-  def start_link(type, gpio) do
-    {:error, "the type must be either 11 or 22"}
-  end
 
   def read(name) do
     GenServer.call(name, :read)
@@ -74,14 +59,20 @@ case, it will pause and then try again.
 
 
   # Server callbacks
-  def init([type, gpio]) do
+  def init([type, gpio, name]) do
     reading = update(type, gpio)
     spawn_link(__MODULE__, :poll_temp, [self, type, gpio])
-    {:ok, {type, gpio, reading}}
+    struct = %Sensor.Temp{  module: __MODULE__, 
+                            name: name, 
+                            unit: reading.unit, 
+                            value: reading.value,
+                            status: reading.status
+                          }
+    {:ok, {type, gpio, struct}}
   end
 
-  def handle_call(:read, _from, state = {_type, _gpio, reading}) do
-    {:reply, reading, state}
+  def handle_call(:read, _from, state = {_type, _gpio, struct}) do
+    {:reply, struct, state}
   end
 
   def handle_call({:set_temp, temp}, _from, state = {type, gpio, reading}) do
