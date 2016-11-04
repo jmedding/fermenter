@@ -15,10 +15,18 @@ defmodule TempTest do
     sensor_params = [type, gpio]
     name = :temp_a
     assert {:ok, _pid, %Sensor.Temp{module: sensor_mod} = struct} = Temp.start(sensor_mod, sensor_params, name)
-
-    #assert {:ok, _sup} = Sensor.Supervisor.start_link
     inspect Supervisor.count_children(SensorSupervisor)
     assert struct.value == 20.0
+  end
+
+  test "Can read a DHT temp sensor", %{type: type, gpio: gpio, sensor_mod: sensor_mod} do
+    sensor_params = [type, gpio]
+    name = :temp_b
+    assert {:ok, _pid, %Sensor.Temp{module: sensor_mod} = struct} = Temp.start(sensor_mod, sensor_params, name)
+    inspect Supervisor.count_children(SensorSupervisor)
+    assert struct.value == 20.0
+    struct.module.set_temp struct.name, 22.2
+    assert %Sensor.Temp{value: 22.2, status: :ok} = Temp.sense(struct)
 
   end
 end

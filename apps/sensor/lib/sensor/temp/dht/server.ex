@@ -113,9 +113,3 @@ case, it will pause and then try again.
   end
 
 end
-
-defimpl TempSensor, for: Sensor.Temp.Dht do
-  def sense(name) do
-      GenServer.call(name, :read)
-  end  
-end
