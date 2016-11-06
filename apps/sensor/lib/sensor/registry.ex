@@ -25,6 +25,10 @@ defmodule Sensor.Registry do
     GenServer.call(@sensorRegistry, {:get, name})
   end
 
+  def remove(name) do
+    GenServer.call(@sensorRegistry, {:remove, name})
+  end
+
   # Server callbacks
   def init(:ok), do: {:ok, %{}}
 
@@ -37,6 +41,10 @@ defmodule Sensor.Registry do
 
   def handle_call({:get, name}, _from, state_map) do
     {:reply, Map.get(state_map, name, :not_found), state_map}
+  end
+
+  def handle_call({:remove, name}, _from, state_map) do
+    {:reply, :ok, Map.delete(state_map, name)}
   end
 
 end
