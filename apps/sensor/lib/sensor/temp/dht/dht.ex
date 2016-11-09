@@ -11,8 +11,8 @@ return the last reading, without waiting for a new read. This is because the
 reading process is somewhat slow, especially if the sensor returns an error, in which
 case, it will pause and then try again.
 """
-
-
+  
+  @behaviour Sensor.Temp
   use GenServer
 
    @device Application.get_env(:sensor, :sensor_temp_dht)
@@ -38,6 +38,8 @@ case, it will pause and then try again.
   @doc """
   Returns the most recent valid reading
   """
+
+  @spec read(:atom) :: %Sensor.Temp{}
   def read(name) do
     GenServer.call(name, :read)
   end

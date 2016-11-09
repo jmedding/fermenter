@@ -1,4 +1,6 @@
 defmodule Sensor.Temp do
+  @callback read(atom) :: %Sensor.Temp{}
+
   @supervisor SensorSupervisor
 
   defstruct unit: "°C",
