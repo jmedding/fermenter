@@ -69,6 +69,15 @@ defmodule TempTest do
       assert value2 == 20.0
     end
 
+    test "Does not blow up if it tries to sense a bad name", %{type: type, gpio: gpio, sensor_mod: sensor_mod} do
+      sensor_params = [type, gpio]
+      name = :temp_e
+      assert {:ok, _pid} = Temp.start(sensor_mod, sensor_params, name)
+      assert %Temp{} = struct = Temp.sense(:temp_e)
+      assert struct.value == 20.0
+      assert {:error, _msg} = Temp.sense(:does_not_exist)
+    end
+
     test "Create two sensors from different types" do
       #Need to create a second sensor type first
     end

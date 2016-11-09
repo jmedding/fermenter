@@ -11,14 +11,7 @@ defmodule Sensor.Temp do
   If this fails, it will unregister the name and sent the errr message
   """
   def start(module, params, name) do
-    with :ok <- Sensor.Registry.add(name, module),
-         {:ok, pid} <- Supervisor.start_child(@supervisor, build_spec(module, params, name)) 
-      do {:ok, pid}
-    else
-      {:error, msg} -> 
-          :ok = Sensor.Registry.remove(name)
-          {:error, msg}
-    end
+    Supervisor.start_child(@supervisor, build_spec(module, params, name)) 
   end
 
   @doc """
@@ -26,8 +19,8 @@ defmodule Sensor.Temp do
   TODO: think about how  protocal could be used to enforce this pattern
   """
   def sense(name) do
-    case Sensor.Registry.get(name) do
-      :not_found -> {:error, "unregistered sensor name: #{name}"}
+    case retrieve_module(name) do
+      {:error, msg}-> {:error, msg}
       module -> module.read(name)
     end
   end
@@ -37,5 +30,14 @@ defmodule Sensor.Temp do
     id = to_string(module) <> "_" <> to_string(count.workers)
     Supervisor.Spec.worker(module, params ++ [name], id: id)
   end
-end
 
+  defp retrieve_module(name) do
+    case Process.whereis(name) do
+      nil -> {:error, "This process does not exist"}
+      _ ->  {_,_,_,[list|_]} = :sys.get_status(name)
+            [a | _] = list
+            {_,{mod, _, _}} = a 
+            mod
+    end
+  end
+end
